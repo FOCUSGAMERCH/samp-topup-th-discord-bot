@@ -4,7 +4,7 @@
 
 > **ช่องทางชำระเงินรองรับประเทศไทยเท่านั้น:** PromptPay/โอนผ่านธนาคาร และ TrueMoney Wallet แบบลิงก์ซองอั่งเปา ไม่รองรับการชำระเงินหรือโอนเงินจากต่างประเทศ
 
-> **สถานะ repository:** Repository สาธารณะนี้มี README สำหรับอธิบายโปรเจกต์เท่านั้น ยังไม่ได้เผยแพร่ source code ส่วนคำอธิบายการทำงานด้านล่างอ้างอิงจากโค้ดรุ่น v3-v4 ที่ตรวจในเครื่องผู้พัฒนา
+> **สถานะ repository:** Repository สาธารณะนี้มี README สำหรับอธิบายโปรเจกต์เท่านั้น ยังไม่ได้เผยแพร่ source code ส่วนคำอธิบายการทำงานด้านล่างอ้างอิงจากโค้ดรุ่นที่ตรวจในเครื่องผู้พัฒนา
 
 ## ภาพรวมการทำงาน
 
@@ -67,7 +67,7 @@
 
 ## การเชื่อมต่อที่เห็นในโค้ด
 
-โค้ดรุ่นที่ตรวจใช้ MySQL สำหรับอ่านบัญชี whitelist และยอด Cash รวมถึงบันทึกรายการเติมเงิน โดยส่วนชำระเงินเรียก API ของ PromptPay/ธนาคาร และ API สำหรับรับซอง TrueMoney ทั้งนี้ชื่อโฟลเดอร์ของชุดโปรเจกต์ระบุรุ่น Focus v3/v4 แต่รายละเอียดการส่งต่อจากตาราง MySQL ไปยังตัวเกมต้องดู source ฝั่ง server เพิ่มเติม
+โค้ดรุ่นที่ตรวจใช้ MySQL สำหรับอ่านบัญชี whitelist และยอด Cash รวมถึงบันทึกรายการเติมเงิน โดยส่วนชำระเงินเรียก API ของ PromptPay/ธนาคาร และ API สำหรับรับซอง TrueMoney ทั้งนี้รายละเอียดการส่งต่อจากตาราง MySQL ไปยังตัวเกมต้องดู source ฝั่ง server เพิ่มเติม ซึ่งไม่ได้อยู่ในชุดโค้ดบอทที่ตรวจ
 
 ## หมายเหตุ
 
@@ -81,7 +81,7 @@ A Python Discord bot for adding Cash to players in an SA-MP server. Players star
 
 > **Thailand-only payment support:** The reviewed implementation supports Thai PromptPay/bank QR payments and TrueMoney Wallet gift-envelope links. Cross-border transfers and payments from outside Thailand are not supported.
 
-> **Repository status:** This public repository contains a project README only; the source code has not been published. The operational details below are based on the developer's local v3-v4 source files.
+> **Repository status:** This public repository contains a project README only; the source code has not been published. The operational details below are based on the developer's local source files.
 
 ## How it works
 
@@ -144,7 +144,7 @@ The `!give` command changes the database balance directly; it is not part of the
 
 ## Integrations shown in the source
 
-The reviewed bot uses MySQL to look up whitelisted accounts and Cash balances and to record top-up transactions. Payment processing calls APIs for PromptPay/bank QR payments and TrueMoney gift-envelope redemption. The project folder is labeled Focus v3/v4, but the server-side process that reads the MySQL transaction rows must be reviewed separately to confirm how those rows become in-game Cash.
+The reviewed bot uses MySQL to look up whitelisted accounts and Cash balances and to record top-up transactions. Payment processing calls APIs for PromptPay/bank QR payments and TrueMoney gift-envelope redemption. The server-side process that reads the MySQL transaction rows must be reviewed separately to confirm how those rows become in-game Cash.
 
 ## Notes
 
