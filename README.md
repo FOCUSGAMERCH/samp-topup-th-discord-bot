@@ -71,9 +71,9 @@ Repository นี้มี `discord_topup.pwn` สำหรับประมว
 
 ## การต่อยอดและเงื่อนไขการใช้
 
-อนุญาตให้นำโค้ดไปศึกษา ใช้ แก้ไข และพัฒนาต่อยอดได้ รวมถึงใช้ดำเนินระบบเติมเงิน SA-MP/Discord ของตัวเองในเชิงพาณิชย์ เช่น เปิดให้ผู้เล่นเติม Cash และรับชำระเงินได้ โดยต้องคงเครดิตและข้อความ License ไว้
+อนุญาตให้นำโค้ดไปศึกษา ใช้ แก้ไข และพัฒนาต่อยอด รวมถึงใช้ระบบเติมเงิน SA-MP/Discord ของตัวเองในเชิงพาณิชย์ได้ เช่น เปิดให้ผู้เล่นเติม Cash และรับชำระเงิน
 
-ห้ามขายหรือขายต่อโค้ดต้นฉบับ โค้ดที่ดัดแปลง หรือไฟล์บอทที่คอมไพล์แล้วเป็นสินค้า/แพ็กเกจ และห้ามขายหรือโอนสิทธิ์ในตัวโค้ด การรับเงินจากการให้บริการเติมเงินหรือดำเนินเซิร์ฟเวอร์ของตัวเองไม่ถือเป็นการขายโค้ด เงื่อนไขฉบับเต็มอยู่ใน [`LICENSE`](LICENSE) นี่เป็น custom license แบบ source-available ไม่ใช่ open-source license มาตรฐาน
+ห้ามขายหรือขายต่อโค้ดต้นฉบับ โค้ดที่ดัดแปลงจากโปรเจกต์นี้ หรือไฟล์บอทที่คอมไพล์แล้ว รวมถึงห้ามขายสิทธิ์ในตัวโค้ด การเปิดเซิร์ฟเวอร์หรือให้บริการเติมเงินของตัวเองและรับเงินจากผู้เล่นทำได้ เงื่อนไขฉบับเต็มอยู่ใน [`LICENSE`](LICENSE) นี่เป็น custom license แบบ source-available ไม่ใช่ open-source license มาตรฐาน
 
 ---
 
@@ -150,6 +150,6 @@ The web server binds only to `127.0.0.1` and only reads MySQL; it cannot create,
 
 ## Development and use terms
 
-You may study, use, modify, and further develop this project, including operating your own SA-MP/Discord top-up service commercially (for example, accepting payments from players for in-game Cash), provided that you retain attribution and the license notice.
+You may study, use, modify, and further develop this project, including operating your own SA-MP/Discord top-up service commercially (for example, accepting payments from players for in-game Cash).
 
-You may not sell or resell the original source, modified source, or a compiled bot as a product or package, or sell/transfer rights to the code itself. Revenue from operating your own game server or top-up service is allowed and is not treated as a sale of the code. The full terms are in [`LICENSE`](LICENSE). This is a custom source-available license, not a standard open-source license.
+You may not sell or resell the original code, code modified from this project, or a compiled bot, or sell/transfer rights to the code itself. Operating your own game server or top-up service and accepting payments from players is allowed. The full terms are in [`LICENSE`](LICENSE). This is a custom source-available license, not a standard open-source license.

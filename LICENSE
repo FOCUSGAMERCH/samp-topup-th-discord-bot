@@ -1,5 +1,5 @@
 SA-MP Top-up Discord Bot — Commercial Use, No Code Resale License
-Version 2.0 — 25 November 2026
+Version 2.1 — 25 November 2026
 Copyright (c) 2026 FOCUSGAMERCH
 
 ## ภาษาไทย
@@ -8,7 +8,7 @@ Copyright (c) 2026 FOCUSGAMERCH
 
 เจ้าของลิขสิทธิ์อนุญาตให้ผู้ได้รับสำเนานี้ศึกษา ใช้ ทำสำเนา แก้ไข และพัฒนาต่อยอด รวมถึงนำซอฟต์แวร์และฉบับดัดแปลงไปดำเนินงานบนเซิร์ฟเวอร์ SA-MP/Discord ของตนเองในเชิงพาณิชย์ได้ ตัวอย่างเช่น เปิดให้ผู้เล่นเติม Cash และรับชำระเงินจากผู้เล่น
 
-สามารถเผยแพร่หรือแบ่งปันสำเนาโค้ดต้นฉบับหรือฉบับดัดแปลงได้โดยไม่คิดค่าโค้ด โดยต้องคงข้อความลิขสิทธิ์ เครดิต และ License นี้ไว้
+สามารถเผยแพร่หรือแบ่งปันสำเนาโค้ดต้นฉบับหรือฉบับดัดแปลงได้โดยไม่คิดค่าโค้ด โดยข้อห้ามการขายในหัวข้อ 2 ยังคงมีผลกับโค้ดดังกล่าว
 
 ### 2. ข้อจำกัดการขายโค้ด
 
@@ -28,7 +28,7 @@ License นี้ไม่ครอบคลุมเครื่องหมา
 
 The copyright holder permits anyone who obtains a copy of this software to study, use, copy, modify, and develop it further, including operating the software and modified versions commercially on their own SA-MP/Discord server or service. Examples include offering in-game Cash top-ups and accepting payments from players.
 
-You may share the original or modified source code without charging for the code, provided that you retain the copyright notice, attribution, and this License.
+You may share the original or modified source code without charging for the code. The no-resale restrictions in Section 2 continue to apply to those copies and modifications.
 
 ### 2. No resale of the code
 
