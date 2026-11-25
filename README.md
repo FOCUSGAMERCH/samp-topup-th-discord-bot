@@ -52,10 +52,11 @@ Repository นี้มี `discord_topup.pwn` สำหรับประมว
 
 ## เริ่มใช้งาน
 
-1. ใช้ Python 3.10 ขึ้นไปและ MySQL ที่มีตาราง `players` กับ `topup_transactions` ตามที่ระบบเกมใช้อยู่
-2. ติดตั้ง dependency: `pip install -r requirements.txt`
-3. ตรวจและตั้งค่า `config.py` ให้ตรงกับ Discord server, MySQL และ payment provider ของคุณ
-4. รัน `python main.py`
+1. ใช้ Python 3.10 ขึ้นไปและ MySQL โดยเลือกฐานข้อมูลเดียวกับที่บอทและเซิร์ฟเวอร์ SA-MP ใช้
+2. สร้างตารางธุรกรรมโดยรันไฟล์ [`sql/topup_transactions.sql`](sql/topup_transactions.sql) ในฐานข้อมูลนั้น ตาราง `players` ต้องมีอยู่แล้วจากระบบเกม
+3. ติดตั้ง dependency: `pip install -r requirements.txt`
+4. ตรวจและตั้งค่า `config.py` ให้ตรงกับ Discord server, MySQL และ payment provider ของคุณ
+5. รัน `python main.py`
 
 `config.py` เป็นไฟล์ตั้งค่าหลักที่บอทอ่านขณะทำงาน ให้ปรับค่าในไฟล์นี้ก่อนเริ่มใช้งาน
 
@@ -121,10 +122,11 @@ The web server binds only to `127.0.0.1` and only reads MySQL; it cannot create,
 
 ## Setup
 
-1. Use Python 3.10 or newer and a MySQL database with the `players` and `topup_transactions` tables expected by the game system.
-2. Install dependencies: `pip install -r requirements.txt`.
-3. Review `config.py` and set it up for your Discord server, MySQL database, and payment provider.
-4. Run `python main.py`.
+1. Use Python 3.10 or newer and select the MySQL database shared by the bot and SA-MP server.
+2. Run [`sql/topup_transactions.sql`](sql/topup_transactions.sql) in that database to create the transaction table. The game system must already provide the `players` table.
+3. Install dependencies: `pip install -r requirements.txt`.
+4. Review `config.py` and set it up for your Discord server, MySQL database, and payment provider.
+5. Run `python main.py`.
 
 `config.py` is the only configuration file and is loaded by the bot at runtime. Update its settings before starting the bot.
 
