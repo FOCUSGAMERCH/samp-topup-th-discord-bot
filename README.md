@@ -54,10 +54,8 @@
 
 1. ใช้ Python 3.10 ขึ้นไปและ MySQL ที่มีตาราง `players` กับ `topup_transactions` ตามที่ระบบเกมใช้อยู่
 2. ติดตั้ง dependency: `pip install -r requirements.txt`
-3. คัดลอก `config.example.py` เป็น `config.py` แล้วใส่ Discord token, IDs, MySQL และค่าบัญชี payment API ของคุณ
+3. ตรวจและตั้งค่า `config.py` ให้ตรงกับ Discord server, MySQL และ payment provider ของคุณ
 4. รัน `python main.py`
-
-ไฟล์ `config.py` ถูกละเว้นโดย Git เพื่อไม่ให้ token และรหัสผ่านติดไปกับ repository ห้ามนำ credentials จริงขึ้น GitHub
 
 ## การต่อยอดและเงื่อนไขการใช้
 
@@ -123,10 +121,8 @@ The web server binds only to `127.0.0.1` and only reads MySQL; it cannot create,
 
 1. Use Python 3.10 or newer and a MySQL database with the `players` and `topup_transactions` tables expected by the game system.
 2. Install dependencies: `pip install -r requirements.txt`.
-3. Copy `config.example.py` to `config.py` and fill in your Discord token, IDs, MySQL settings, and payment API credentials.
+3. Review `config.py` and set it up for your Discord server, MySQL database, and payment provider.
 4. Run `python main.py`.
-
-Git ignores `config.py` so tokens and passwords stay out of the repository. Never publish real credentials.
 
 ## Development and use terms
 
