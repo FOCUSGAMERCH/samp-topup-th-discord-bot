@@ -57,6 +57,8 @@
 3. ตรวจและตั้งค่า `config.py` ให้ตรงกับ Discord server, MySQL และ payment provider ของคุณ
 4. รัน `python main.py`
 
+`config.py` คือไฟล์ตั้งค่าที่บอทอ่านตอนทำงาน ส่วน `config.example.py` เป็นแม่แบบเปล่าพร้อมคำอธิบายภาษาไทย ใช้คัดลอกมาตั้งค่าใหม่ได้
+
 ## การต่อยอดและเงื่อนไขการใช้
 
 อนุญาตให้นำโค้ดไปศึกษาและพัฒนาต่อสำหรับการใช้งานที่ไม่ใช่เชิงพาณิชย์ โดยต้องคงเครดิตและข้อความ license ไว้ ห้ามขายโค้ด ขายฉบับดัดแปลง คิดค่าบริการเพื่อให้เข้าถึงบอท หรือรวมในบริการเสียเงิน หากต้องการใช้งานเชิงพาณิชย์ต้องได้รับอนุญาตเป็นลายลักษณ์อักษรจากเจ้าของโปรเจกต์ก่อน
@@ -123,6 +125,8 @@ The web server binds only to `127.0.0.1` and only reads MySQL; it cannot create,
 2. Install dependencies: `pip install -r requirements.txt`.
 3. Review `config.py` and set it up for your Discord server, MySQL database, and payment provider.
 4. Run `python main.py`.
+
+`config.py` is loaded by the bot at runtime. `config.example.py` is a blank template with Thai comments that can be copied when creating a fresh configuration.
 
 ## Development and use terms
 
