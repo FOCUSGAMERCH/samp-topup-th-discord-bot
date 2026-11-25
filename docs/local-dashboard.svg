@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="270" viewBox="0 0 920 270" role="img" aria-labelledby="title description">
+  <title id="title">Local-only top-up dashboard</title>
+  <desc id="description">A browser on the same computer reads top-up data from MySQL through a loopback-only dashboard server.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#111827"/><stop offset="1" stop-color="#182b38"/></linearGradient>
+    <marker id="arrow" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0 0 9 4.5 0 9Z" fill="#66d9ad"/></marker>
+  </defs>
+  <rect width="920" height="270" rx="22" fill="url(#bg)"/>
+  <text x="36" y="45" fill="#f2f7fb" font-family="Segoe UI, sans-serif" font-size="22" font-weight="700">Local dashboard · เว็บดูสรุปเฉพาะเครื่องนี้</text>
+  <g font-family="Segoe UI, sans-serif" text-anchor="middle">
+    <g transform="translate(48 94)"><rect width="212" height="110" rx="16" fill="#202f40" stroke="#344b60"/><text x="106" y="40" fill="#f4f7fb" font-size="16" font-weight="700">Browser</text><text x="106" y="68" fill="#aebdca" font-size="14">http://127.0.0.1:8765</text><text x="106" y="90" fill="#aebdca" font-size="12">เครื่องเดียวกับที่รันบอท</text></g>
+    <g transform="translate(354 94)"><rect width="212" height="110" rx="16" fill="#203a3d" stroke="#3a7168"/><text x="106" y="40" fill="#f4f7fb" font-size="16" font-weight="700">Read-only API</text><text x="106" y="68" fill="#b5d6ce" font-size="14">127.0.0.1 only</text><text x="106" y="90" fill="#b5d6ce" font-size="12">ไม่เขียนหรือแก้รายการ</text></g>
+    <g transform="translate(660 94)"><rect width="212" height="110" rx="16" fill="#202f40" stroke="#344b60"/><text x="106" y="40" fill="#f4f7fb" font-size="16" font-weight="700">MySQL</text><text x="106" y="68" fill="#aebdca" font-size="14">topup_transactions</text><text x="106" y="90" fill="#aebdca" font-size="12">ยอดรวม · สถานะ · รายการล่าสุด</text></g>
+  </g>
+  <g fill="none" stroke="#66d9ad" stroke-width="3" marker-end="url(#arrow)"><path d="M262 149H346"/><path d="M570 149H652"/></g>
+  <text x="460" y="238" text-anchor="middle" fill="#91a4b4" font-family="Segoe UI, sans-serif" font-size="13">Read requests flow from the page to the local API; dashboard queries only read MySQL.</text>
+</svg>

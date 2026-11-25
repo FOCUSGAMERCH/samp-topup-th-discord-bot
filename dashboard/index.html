@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Top-up Overview</title>
+  <style>
+    :root { color-scheme: dark; --bg:#101318; --panel:#191e26; --line:#2b3340; --muted:#9ba7b7; --text:#eef3fa; --green:#5bd6a0; --orange:#ffbf69; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:var(--text); font:15px/1.5 "Segoe UI",Tahoma,sans-serif; }
+    main { width:min(1120px, calc(100% - 32px)); margin:36px auto 64px; }
+    header { display:flex; justify-content:space-between; align-items:end; gap:16px; margin-bottom:24px; }
+    h1 { font-size:clamp(25px,4vw,36px); margin:0; letter-spacing:-.04em; }
+    h2 { font-size:17px; margin:0 0 16px; }
+    p { color:var(--muted); margin:5px 0 0; }
+    button,input,select { background:#202731; color:var(--text); border:1px solid var(--line); border-radius:9px; padding:10px 12px; font:inherit; }
+    button { cursor:pointer; } button:hover { border-color:#607086; }
+    .cards { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin-bottom:18px; }
+    .card,.panel { background:var(--panel); border:1px solid var(--line); border-radius:14px; }
+    .card { padding:18px; } .label { color:var(--muted); font-size:13px; }
+    .value { font-size:28px; font-weight:650; margin-top:6px; letter-spacing:-.03em; }
+    .columns { display:grid; grid-template-columns:1fr 2fr; gap:14px; }
+    .panel { padding:18px; min-width:0; }
+    .method { display:flex; justify-content:space-between; gap:12px; padding:12px 0; border-top:1px solid var(--line); }
+    .method:first-of-type { border-top:0; }
+    .toolbar { display:flex; gap:8px; margin-bottom:12px; }
+    .toolbar input { min-width:120px; flex:1; }
+    .table-wrap { overflow:auto; }
+    table { border-collapse:collapse; width:100%; min-width:620px; text-align:left; }
+    th,td { border-bottom:1px solid var(--line); padding:11px 9px; white-space:nowrap; }
+    th { color:var(--muted); font-weight:500; font-size:13px; }
+    .status { display:inline-block; padding:3px 8px; border-radius:99px; font-size:12px; }
+    .done { color:var(--green); background:#17372b; } .pending { color:var(--orange); background:#3b2b18; }
+    .empty,.error { padding:20px 8px; color:var(--muted); text-align:center; }
+    .error { color:#ff9c9c; }
+    footer { color:var(--muted); font-size:12px; margin-top:14px; }
+    @media (max-width:800px) { .cards { grid-template-columns:repeat(2,minmax(0,1fr)); } .columns { grid-template-columns:1fr; } header { align-items:start; flex-direction:column; } }
+    @media (max-width:420px) { main { width:calc(100% - 20px); margin-top:22px; } .cards { gap:8px; } .card,.panel { padding:13px; } .value { font-size:23px; } }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div><h1>สรุปการเติมเงิน</h1><p>ข้อมูลจาก MySQL · แสดงบนเครื่องนี้เท่านั้น</p></div>
+      <button id="refresh" type="button">รีเฟรชข้อมูล</button>
+    </header>
+    <section class="cards" aria-label="สรุปรายการ">
+      <article class="card"><div class="label">รายการทั้งหมด</div><div class="value" id="count">—</div></article>
+      <article class="card"><div class="label">ยอดรวม</div><div class="value" id="amount">—</div></article>
+      <article class="card"><div class="label">รอดำเนินการ</div><div class="value" id="pending">—</div></article>
+      <article class="card"><div class="label">ดำเนินการแล้ว</div><div class="value" id="processed">—</div></article>
+    </section>
+    <section class="columns">
+      <article class="panel"><h2>แยกตามช่องทาง</h2><div id="methods" class="empty">กำลังโหลด…</div></article>
+      <article class="panel">
+        <h2>รายการล่าสุด</h2>
+        <div class="toolbar"><input id="search" type="search" placeholder="ค้นหาชื่อผู้เล่นหรือรหัสอ้างอิง"><select id="status"><option value="all">ทุกสถานะ</option><option value="0">รอดำเนินการ</option><option value="1">ดำเนินการแล้ว</option></select></div>
+        <div class="table-wrap"><table><thead><tr><th>เวลา</th><th>ผู้เล่น</th><th>ยอด</th><th>ช่องทาง</th><th>สถานะ</th><th>อ้างอิง</th></tr></thead><tbody id="rows"><tr><td colspan="6" class="empty">กำลังโหลด…</td></tr></tbody></table></div>
+        <footer>แสดงรายการล่าสุดไม่เกิน 200 รายการ</footer>
+      </article>
+    </section>
+  </main>
+  <script>
+    const number = value => Number(value || 0).toLocaleString('th-TH');
+    const cell = value => value == null || value === '' ? '—' : String(value);
+    const escapeHtml = value => cell(value).replace(/[&<>"']/g, character => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    })[character]);
+    let transactions = [];
+
+    function renderRows() {
+      const query = document.querySelector('#search').value.trim().toLowerCase();
+      const state = document.querySelector('#status').value;
+      const filtered = transactions.filter(item => {
+        const matchesQuery = `${item.playerName || ''} ${item.ref_code || ''}`.toLowerCase().includes(query);
+        const matchesStatus = state === 'all' || String(item.processed) === state;
+        return matchesQuery && matchesStatus;
+      });
+      const body = document.querySelector('#rows');
+      if (!filtered.length) {
+        body.innerHTML = '<tr><td colspan="6" class="empty">ไม่พบรายการ</td></tr>';
+        return;
+      }
+      body.innerHTML = filtered.map(item => {
+        const done = String(item.processed) === '1';
+        return `<tr><td>${escapeHtml(item.created_at || item.createdAt || item.timestamp)}</td><td>${escapeHtml(item.playerName)}</td><td>${number(item.amount)}</td><td>${escapeHtml(item.payment_method)}</td><td><span class="status ${done ? 'done' : 'pending'}">${done ? 'เสร็จแล้ว' : 'รอดำเนินการ'}</span></td><td>${escapeHtml(item.ref_code)}</td></tr>`;
+      }).join('');
+    }
+
+    async function load() {
+      const button = document.querySelector('#refresh');
+      button.disabled = true;
+      try {
+        const response = await fetch('/api/summary', { cache: 'no-store' });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'โหลดข้อมูลไม่สำเร็จ');
+        const totals = data.totals || {};
+        document.querySelector('#count').textContent = number(totals.transaction_count);
+        document.querySelector('#amount').textContent = `${number(totals.amount_total)} ฿`;
+        document.querySelector('#pending').textContent = number(totals.pending_count);
+        document.querySelector('#processed').textContent = number(totals.processed_count);
+        const methods = document.querySelector('#methods');
+        methods.className = 'method-list';
+        methods.innerHTML = (data.methods || []).length
+          ? data.methods.map(item => `<div class="method"><span>${escapeHtml(item.payment_method)}</span><span>${number(item.transaction_count)} รายการ · ${number(item.amount_total)} ฿</span></div>`).join('')
+          : '<div class="empty">ยังไม่มีข้อมูล</div>';
+        transactions = data.recent || [];
+        renderRows();
+      } catch (error) {
+        document.querySelector('#methods').innerHTML = `<div class="error">${escapeHtml(error.message)}</div>`;
+        document.querySelector('#rows').innerHTML = `<tr><td colspan="6" class="error">${escapeHtml(error.message)}</td></tr>`;
+      } finally {
+        button.disabled = false;
+      }
+    }
+
+    document.querySelector('#refresh').addEventListener('click', load);
+    document.querySelector('#search').addEventListener('input', renderRows);
+    document.querySelector('#status').addEventListener('change', renderRows);
+    load();
+    window.setInterval(load, 30000);
+  </script>
+</body>
+</html>

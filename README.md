@@ -1,151 +1,135 @@
 # SA-MP Top-up Discord Bot
 
-บอท Discord สำหรับระบบเติม Cash ให้ผู้เล่นในเซิร์ฟเวอร์ SA-MP พัฒนาด้วย Python ใช้ปุ่มและหน้ากรอกข้อมูลใน Discord เพื่อเริ่มรายการ รองรับเติมให้ตัวเองหรือผู้เล่นคนอื่น และส่งสถานะรายการกลับใน Discord
+บอท Discord สำหรับระบบเติม Cash ให้ผู้เล่น SA-MP พัฒนาด้วย Python และใช้ MySQL เป็นจุดเชื่อมระหว่างคำขอเติมเงินกับระบบฝั่งเกม รองรับเติมให้ตัวเองหรือให้เพื่อน ตรวจสอบยอด Cash และมีหน้าเว็บ local สำหรับดูสรุปรายการ
 
-> **ช่องทางชำระเงินรองรับประเทศไทยเท่านั้น:** PromptPay/โอนผ่านธนาคาร และ TrueMoney Wallet แบบลิงก์ซองอั่งเปา ไม่รองรับการชำระเงินหรือโอนเงินจากต่างประเทศ
+> **ช่องทางธนาคารปัจจุบัน:** ตั้งค่าไว้สำหรับ KBank QR/PromptPay ผ่าน payment provider API การยืนยันในโค้ดบอททำโดยเรียก API ตรวจรายการเมื่อผู้ใช้กดปุ่มยืนยัน ไม่พบ webhook callback endpoint ใน source ของบอทชุดนี้
+>
+> **ช่องทางเพิ่มเติม:** รองรับ TrueMoney Wallet แบบซองอั่งเปา การชำระเงินออกแบบสำหรับประเทศไทย ผู้พัฒนาสามารถเพิ่ม bank adapter หรือ webhook receiver สำหรับธนาคารอื่นต่อได้
 
-> **สถานะ repository:** Repository สาธารณะนี้มี README สำหรับอธิบายโปรเจกต์เท่านั้น ยังไม่ได้เผยแพร่ source code ส่วนคำอธิบายการทำงานด้านล่างอ้างอิงจากโค้ดรุ่นที่ตรวจในเครื่องผู้พัฒนา
+![Top-up transaction flow](docs/topup-flow.svg)
 
-## ภาพรวมการทำงาน
+## การทำงาน
 
-1. ผู้เล่นกดปุ่มเติมเงินใน Discord
-2. บอทตรวจว่าบัญชี Discord ผูกกับตัวละครในระบบ whitelist แล้วหรือไม่ โดยอ่านข้อมูลจาก MySQL ตาราง `players`
-3. ผู้เล่นเลือกเติมให้ตัวเอง หรือเลือกเติมให้เพื่อนและกรอกชื่อตัวละครผู้รับ
-4. บอทตรวจชื่อผู้รับกับฐานข้อมูล แล้วให้เลือกช่องทางชำระเงิน
-5. บอทตรวจสอบการชำระเงินผ่าน API ของช่องทางนั้น
-6. เมื่อ API ยืนยันสำเร็จ บอทบันทึกรายการลง MySQL ตาราง `topup_transactions` และแจ้งผลใน Discord
-7. แถวรายการที่สร้างจากการชำระเงินถูกบันทึกเป็น `processed = 0` เพื่อส่งต่อให้ระบบที่ดูแลการเติม Cash ประมวลผล
+1. ผู้ใช้กด **เติมเงิน**, **เติมให้เพื่อน**, หรือ **เช็ค Cash** ใน Discord บัญชี Discord ต้องผูกกับตัวละครใน whitelist ก่อน
+2. บอทอ่านข้อมูลผู้เล่นจาก MySQL ตาราง `players` หากเติมให้เพื่อน บอทตรวจชื่อผู้รับกับฐานข้อมูลด้วย
+3. สำหรับ KBank QR/PromptPay บอทขอสร้างรายการและ QR จาก payment provider API ส่ง QR ให้ผู้ใช้ แล้วตรวจสถานะอีกครั้งเมื่อกด **ยืนยันการโอน**
+4. สำหรับ TrueMoney Wallet ผู้ใช้ส่งลิงก์ซอง บอทตรวจรูปแบบและป้องกันการใช้ reference ซ้ำ ก่อนตรวจรับซองผ่าน API
+5. เมื่อ API ยืนยันการชำระเงิน บอทเพิ่มแถวใน `topup_transactions` โดยกำหนด `processed = 0`
+6. ตัวประมวลผลฝั่ง SA-MP ที่เชื่อมกับฐานข้อมูลอ่านรายการค้าง เพิ่ม Cash ให้ผู้เล่น และอัปเดตสถานะเมื่อทำสำเร็จ
 
-**การเชื่อมต่อกับเกม:** ในไฟล์บอทที่ตรวจ ไม่พบการเชื่อมต่อโดยตรงกับ SA-MP ผ่าน socket หรือ game-server API ตัวบอทเขียนรายการลง MySQL เป็นจุดส่งต่องาน ดังนั้นการนำรายการไปเพิ่ม Cash ในเกมขึ้นอยู่กับส่วน server-side/ตัวประมวลผลฐานข้อมูลที่เชื่อมกับตารางนี้ ซึ่งอยู่นอก source ของบอทชุดนี้
+บอทชุดนี้ไม่แก้ไฟล์ Pawn และไม่ได้รวมสคริปต์ฝั่ง SA-MP ไว้ใน repository นี้ การเพิ่ม Cash ในเกมต้องมี server-side processor ที่ทำงานกับตารางธุรกรรมเดียวกัน
 
-## ช่องทางชำระเงิน
+### ภาพตัวอย่างการทำงาน
 
-### PromptPay / ธนาคาร และ QR Code
+ภาพด้านล่างเป็นตัวอย่างจากระบบ: หน้าจอในเกมจับคู่กับข้อความแจ้งรายการใน Discord, log ฝั่งเซิร์ฟเวอร์แสดงธุรกรรมที่ถูกประมวลผล และตัวอย่างโค้ดแสดงการอ่านรายการค้างจากฐานข้อมูล โปรดทราบว่าการเติม Cash ในเกมขึ้นอยู่กับ processor ฝั่ง SA-MP ที่ติดตั้งแยกจากบอท
 
-- ผู้ใช้กรอกจำนวนเงิน โดยขั้นต่ำในโค้ดคือ 10 บาท
-- บอทเรียก API เพื่อสร้างรายการชำระเงิน แล้วเรียก API อีกครั้งเพื่อขอรายละเอียด QR
-- API ส่งรูป QR กลับมาเป็น Base64 จากนั้นบอทถอดรหัสและแนบรูปให้ผู้ใช้ในข้อความส่วนตัว (ephemeral) บน Discord
-- ข้อความ QR แสดงยอดที่ต้องจ่าย ชื่อตัวละครผู้รับ และเวลาหมดอายุตามข้อมูลจาก API
-- หลังโอนเงิน ผู้ใช้กดปุ่ม **ยืนยันการโอน** บอทจึงเรียก API เพื่อตรวจสถานะการชำระเงิน
-- เมื่อ API ยืนยันสำเร็จ บอทบันทึกยอดและรหัสอ้างอิงลง `topup_transactions`
-- โค้ดจำกัดการสร้าง QR ไว้ 3 ครั้งต่อผู้ใช้ในช่วงเวลา 5 นาที
-- ช่องทางธนาคาร/PromptPay ปิดช่วง 23:00–02:00 น. ตามเวลาไทย
+| ขั้นตอน | ภาพประกอบ |
+| --- | --- |
+| QR/PromptPay และข้อความแจ้งรายการใน Discord | ![ตัวอย่างหน้าจอเกมและข้อความแจ้งการชำระเงินใน Discord](docs/images/discord-payment-flow.png) |
+| Log ยืนยันการประมวลผลรายการเติมเงินในเกม | ![ตัวอย่าง log การเติม Cash ให้ผู้เล่น](docs/images/samp-credit-log.png) |
+| ตัวอย่าง processor ฝั่งเซิร์ฟเวอร์อ่านรายการธุรกรรมค้าง | ![ตัวอย่างโค้ด processor อ่านรายการ top-up จากฐานข้อมูล](docs/images/server-transaction-check.png) |
 
-### TrueMoney Wallet แบบซองอั่งเปา
+## ปุ่มและคำสั่ง
 
-- ผู้ใช้ส่งลิงก์ซอง TrueMoney ในหน้ากรอกข้อมูลของ Discord
-- บอทตรวจรูปแบบลิงก์และเช็กรหัสซองใน `topup_transactions` เพื่อป้องกันใช้รหัสอ้างอิงซ้ำ
-- บอทส่งลิงก์ให้ API ตรวจ/รับซอง หาก API ตอบว่าสำเร็จ จะใช้จำนวนเงินที่ API รายงาน
-- บอทบันทึกชื่อผู้รับ จำนวนเงิน ช่องทาง และรหัสซองลง `topup_transactions`
+โพสต์หลักมีปุ่ม **เติมเงิน**, **เติมให้เพื่อน**, **เช็ค Cash**, และลิงก์คู่มือ (เปลี่ยน URL ของลิงก์คู่มือใน `main.py` ก่อนใช้งานจริง) เมนูชำระเงินเลือกได้ระหว่างธนาคาร/PromptPay กับ TrueMoney Wallet ตามการตั้งค่า
 
-ช่องทางทั้งสองเป็นบริการชำระเงินในประเทศไทย รายการจากต่างประเทศไม่รองรับ
+คำสั่งผู้ดูแลใช้ prefix `!` และตรวจสิทธิ์จาก `OWNERS` ใน config:
 
-## ปุ่มและเมนูใน Discord
+- `!setuptopup` — ส่งโพสต์เมนูเติมเงิน
+- `!refpup <message_id|-> [description]` — รีเฟรชหรือแก้คำอธิบายโพสต์
+- `!topupoff [message_id]` — ปิดการเติมเงิน
+- `!topupon [message_id]` — เปิดการเติมเงิน
 
-โพสต์เติมเงินหลักมีองค์ประกอบดังนี้:
+ข้อจำกัดในโค้ดปัจจุบัน: ขั้นต่ำ 10 บาท, สร้าง QR ได้ไม่เกิน 3 ครั้งต่อผู้ใช้ใน 5 นาที และปิดช่องทางธนาคาร/PromptPay เวลา 23:00–02:00 น. ตามเวลาไทย
 
-- **เติมเงิน** — ตรวจ whitelist แล้วเริ่มรายการสำหรับตัวละครของผู้ใช้
-- **เติมให้เพื่อน** — เปิดหน้ากรอกชื่อตัวละคร ตรวจว่ามีชื่อนั้นในตารางผู้เล่น แล้วเริ่มรายการในชื่อผู้รับ
-- **เช็ค Cash** — อ่านยอด `playerWallet` ของตัวละครที่ผูกกับ Discord แล้วแสดงให้ผู้ใช้เห็น
-- **เลือกช่องทาง** — ตามค่า UI ใน config รุ่นที่ตรวจ จะแสดงปุ่ม TrueMoney Wallet และธนาคาร/PromptPay; อีกโหมดหนึ่งใช้เมนูเลือก
-- **ยืนยันการโอน** — ตรวจผลการชำระ QR กับ API และบันทึกรายการเมื่อสำเร็จ
-- **ลิงก์คลิปสอน** — มีปุ่มลิงก์ในโพสต์ แต่ URL ใน source รุ่นที่ตรวจเป็นหน้า YouTube ทั่วไป ควรเปลี่ยนเป็นคลิปคู่มือจริงก่อนใช้งาน
+## หน้าเว็บสรุป Top-up
 
-ข้อความตอบกลับรายการส่วนตัวจะมองเห็นเฉพาะผู้กดปุ่ม ส่วน log รายการที่สำเร็จจะถูกส่งไปยังช่องแจ้งเตือนที่ตั้งค่าไว้
+รัน `python main.py` แล้วเปิด <http://127.0.0.1:8765> บนเครื่องเดียวกัน หน้าเว็บแสดงยอดรวม จำนวนรายการค้าง/สำเร็จ ยอดแยกตามช่องทาง และรายการล่าสุด พร้อมค้นหาชื่อผู้เล่นหรือรหัสอ้างอิง
 
-## คำสั่งผู้ดูแล
+เว็บเซิร์ฟเวอร์ bind เฉพาะ `127.0.0.1` และอ่าน MySQL อย่างเดียว ไม่สร้าง แก้ไข หรือลบรายการ ตารางจะแสดงได้สูงสุด 200 รายการล่าสุด หาก schema มีคอลัมน์เวลา หน้าจะแสดงเวลานั้นด้วย
 
-คำสั่งทั้งหมดใช้ prefix `!` และตรวจสิทธิ์จากรายชื่อ owner ที่ตั้งค่าไว้:
+![Local-only top-up dashboard flow](docs/local-dashboard.svg)
 
-- `!setuptopup` — สร้างโพสต์หลักสำหรับเติมเงิน
-- `!topupoff` — ปิดการเติมเงินและปิดปุ่มบนโพสต์เป้าหมาย
-- `!topupon` — เปิดการเติมเงินอีกครั้ง
-- `!refpup` — รีเฟรชหรือแก้คำอธิบายโพสต์เติมเงิน
-- `!give <ชื่อตัวละคร> <จำนวน Cash>` — คำสั่งสำรองสำหรับ owner เพื่อเพิ่ม Cash ให้ผู้เล่นโดยตรงในฐานข้อมูล และบันทึก log แบบ manual
+## เริ่มใช้งาน
 
-คำสั่ง `!give` เป็นการแก้ยอดในฐานข้อมูลโดยตรง ไม่ใช่ขั้นตอนชำระเงินปกติ
+1. ใช้ Python 3.10 ขึ้นไปและ MySQL ที่มีตาราง `players` กับ `topup_transactions` ตามที่ระบบเกมใช้อยู่
+2. ติดตั้ง dependency: `pip install -r requirements.txt`
+3. คัดลอก `config.example.py` เป็น `config.py` แล้วใส่ Discord token, IDs, MySQL และค่าบัญชี payment API ของคุณ
+4. รัน `python main.py`
 
-## การเชื่อมต่อที่เห็นในโค้ด
+ไฟล์ `config.py` ถูกละเว้นโดย Git เพื่อไม่ให้ token และรหัสผ่านติดไปกับ repository ห้ามนำ credentials จริงขึ้น GitHub
 
-โค้ดรุ่นที่ตรวจใช้ MySQL สำหรับอ่านบัญชี whitelist และยอด Cash รวมถึงบันทึกรายการเติมเงิน โดยส่วนชำระเงินเรียก API ของ PromptPay/ธนาคาร และ API สำหรับรับซอง TrueMoney ทั้งนี้รายละเอียดการส่งต่อจากตาราง MySQL ไปยังตัวเกมต้องดู source ฝั่ง server เพิ่มเติม ซึ่งไม่ได้อยู่ในชุดโค้ดบอทที่ตรวจ
+## การต่อยอดและเงื่อนไขการใช้
 
-## หมายเหตุ
+อนุญาตให้นำโค้ดไปศึกษาและพัฒนาต่อสำหรับการใช้งานที่ไม่ใช่เชิงพาณิชย์ โดยต้องคงเครดิตและข้อความ license ไว้ ห้ามขายโค้ด ขายฉบับดัดแปลง คิดค่าบริการเพื่อให้เข้าถึงบอท หรือรวมในบริการเสียเงิน หากต้องการใช้งานเชิงพาณิชย์ต้องได้รับอนุญาตเป็นลายลักษณ์อักษรจากเจ้าของโปรเจกต์ก่อน
 
-คู่มือติดตั้ง รายการ dependency และ source code ยังไม่ได้เผยแพร่ใน repository นี้ ห้ามนำ credentials หรือ token จากไฟล์ตั้งค่าขึ้น GitHub แบบสาธารณะ
+เงื่อนไขฉบับเต็มอยู่ใน [`LICENSE`](LICENSE) เงื่อนไขนี้เป็น custom non-commercial license; โปรเจกต์จึงเป็น **source-available** ไม่ใช่ open-source license มาตรฐาน
 
 ---
 
-# SA-MP Top-up Discord Bot
+## English
 
-A Python Discord bot for adding Cash to players in an SA-MP server. Players start a request through Discord buttons and forms. The bot supports topping up the linked account or another player, then reports the transaction status in Discord.
+A Python Discord bot for SA-MP Cash top-ups. It uses MySQL to pass payment records to the game-side processor. Players can top up their linked character or a friend, check their Cash balance, and view a local transaction dashboard.
 
-> **Thailand-only payment support:** The reviewed implementation supports Thai PromptPay/bank QR payments and TrueMoney Wallet gift-envelope links. Cross-border transfers and payments from outside Thailand are not supported.
+> **Current bank integration:** Configured for KBank QR/PromptPay through the payment-provider API. The bot verifies a payment by calling the provider API after the user presses the confirmation button; this bot source does not expose a webhook callback endpoint.
+>
+> **Additional payment method:** TrueMoney Wallet gift-envelope links are supported. Payments are intended for Thailand. Developers can extend the payment layer with other bank adapters or webhook receivers.
 
-> **Repository status:** This public repository contains a project README only; the source code has not been published. The operational details below are based on the developer's local source files.
+![Top-up transaction flow](docs/topup-flow.svg)
 
 ## How it works
 
-1. A player presses a top-up button in Discord.
-2. The bot checks that the Discord account is linked to a whitelisted game character by querying the MySQL `players` table.
-3. The player chooses self top-up or enters another character name as the recipient.
-4. For a friend top-up, the bot checks that the recipient exists in the player database.
-5. The bot processes payment through the selected payment API.
-6. After the API confirms payment, the bot writes a transaction row to MySQL `topup_transactions` and reports the result in Discord.
-7. Payment-created rows are stored with `processed = 0` for the connected server-side top-up processor.
+1. A user selects **Top up**, **Top up a friend**, or **Check Cash** in Discord. Their Discord account must be linked to a whitelisted game character.
+2. The bot reads player information from the MySQL `players` table. For a friend top-up, it also checks the recipient name against the player database.
+3. For KBank QR/PromptPay, the bot requests a payment and QR from the provider, sends the QR to the user, then checks the payment after the user presses **Confirm Transfer**.
+4. For TrueMoney Wallet, the user submits a gift-envelope link. The bot validates the link and rejects a reference already used before checking the envelope through the API.
+5. After successful payment verification, the bot inserts a row in `topup_transactions` with `processed = 0`.
+6. The separate SA-MP server-side processor reads pending transactions, credits the player, and updates the status after completion.
 
-**Game-server handoff:** The reviewed bot source does not show a direct SA-MP socket or game-server API connection. It writes a pending row to MySQL as the handoff point. Crediting Cash in-game depends on a separate server-side process that consumes this table; that component is outside this bot source.
+This repository does not include or modify the SA-MP Pawn script. In-game Cash delivery requires a server-side processor connected to the same transaction table.
 
-## Payment methods
+### Workflow screenshots
 
-### PromptPay / Bank transfer and QR code
+These examples show the in-game screen alongside the Discord payment notification, a server log recording a processed top-up, and sample code that reads pending database transactions. In-game Cash delivery depends on a separate SA-MP server-side processor.
 
-- The user enters an amount; the reviewed code enforces a minimum of 10 THB.
-- The bot asks the payment API to create a payment, then requests the QR details.
-- The API returns the QR image as Base64. The bot decodes it and attaches the image to an ephemeral Discord response.
-- The QR message shows the amount, recipient character, and expiry time returned by the API.
-- After paying, the user presses **Confirm Transfer**. The bot calls the API to check the payment status.
-- Once confirmed, the bot records the amount and transaction reference in `topup_transactions`.
-- QR creation is limited to three attempts per user within a five-minute window.
-- The bank/PromptPay option is unavailable from 23:00 to 02:00 Thailand time.
+| Step | Example |
+| --- | --- |
+| QR/PromptPay and Discord payment notification | ![Example game screen and Discord payment notification](docs/images/discord-payment-flow.png) |
+| Server log confirming a processed in-game top-up | ![Example log for a player Cash top-up](docs/images/samp-credit-log.png) |
+| Server-side processor reading pending transactions | ![Example processor code reading top-up records from the database](docs/images/server-transaction-check.png) |
 
-### TrueMoney Wallet gift envelopes
+## Buttons and commands
 
-- The user submits a TrueMoney gift-envelope link through a Discord form.
-- The bot validates the link format and checks `topup_transactions` for an existing reference to prevent reusing the same gift code.
-- The bot sends the link to the wallet API. If the API reports success, the bot uses the amount returned by that API.
-- The bot records the recipient, amount, payment method, and gift reference in `topup_transactions`.
+The main post provides **Top up**, **Top up a friend**, **Check Cash**, and a tutorial link (replace the tutorial URL in `main.py` before deployment). Users select Bank/PromptPay or TrueMoney Wallet according to the configured UI mode.
 
-Both payment methods are intended for Thailand. Payments originating outside Thailand are not supported.
+Owner-only commands use the `!` prefix and the IDs in `OWNERS`:
 
-## Discord buttons and menus
+- `!setuptopup` — post the top-up panel
+- `!refpup <message_id|-> [description]` — refresh or edit the panel description
+- `!topupoff [message_id]` — disable top-ups
+- `!topupon [message_id]` — re-enable top-ups
 
-The main top-up post includes:
+Current limits: 10 THB minimum, up to three QR creation attempts per user in five minutes, and bank/PromptPay maintenance from 23:00 to 02:00 Thailand time.
 
-- **Top up** — checks the whitelist and starts a request for the user's linked character.
-- **Top up a friend** — opens a form for a character name, checks that the player exists, and starts a request for that recipient.
-- **Check Cash** — reads the linked character's `playerWallet` balance and displays it privately.
-- **Payment method** — the reviewed configuration displays TrueMoney Wallet and Bank/PromptPay buttons; an alternate UI mode uses a select menu.
-- **Confirm Transfer** — checks the QR payment with the API and records the transaction after success.
-- **Tutorial link** — a link button exists, but the URL in the reviewed source points to the general YouTube homepage. Replace it with the actual tutorial before use.
+## Local top-up dashboard
 
-Private interaction responses are visible only to the user. Successful transaction logs are sent to the configured notification channel.
+Run `python main.py`, then open <http://127.0.0.1:8765> on the same computer. The page shows totals, pending and completed counts, totals by payment method, and recent transactions. It supports searching player names and references.
 
-## Owner commands
+The web server binds only to `127.0.0.1` and only reads MySQL; it cannot create, update, or delete transactions. The table shows up to 200 recent rows and displays a timestamp when the database schema has a supported time column.
 
-Commands use the `!` prefix and are restricted to IDs in the configured owner list:
+![Local-only top-up dashboard flow](docs/local-dashboard.svg)
 
-- `!setuptopup` — posts the main top-up panel.
-- `!topupoff` — disables top-ups and the buttons on the target post.
-- `!topupon` — re-enables top-ups.
-- `!refpup` — refreshes the top-up post or changes its description.
-- `!give <character> <amount>` — owner-only backup command that directly adds Cash in the database and writes a manual log.
+## Setup
 
-The `!give` command changes the database balance directly; it is not part of the normal payment flow.
+1. Use Python 3.10 or newer and a MySQL database with the `players` and `topup_transactions` tables expected by the game system.
+2. Install dependencies: `pip install -r requirements.txt`.
+3. Copy `config.example.py` to `config.py` and fill in your Discord token, IDs, MySQL settings, and payment API credentials.
+4. Run `python main.py`.
 
-## Integrations shown in the source
+Git ignores `config.py` so tokens and passwords stay out of the repository. Never publish real credentials.
 
-The reviewed bot uses MySQL to look up whitelisted accounts and Cash balances and to record top-up transactions. Payment processing calls APIs for PromptPay/bank QR payments and TrueMoney gift-envelope redemption. The server-side process that reads the MySQL transaction rows must be reviewed separately to confirm how those rows become in-game Cash.
+## Development and use terms
 
-## Notes
+You may study, use, modify, and further develop this project for non-commercial purposes, provided that you keep the attribution and license notice. You may not sell the code or modified versions, charge for access to the bot, or include it in a paid service without prior written permission from the project owner.
 
-Installation instructions, dependencies, and source code have not been published in this repository. Do not commit credentials or tokens from the configuration file to a public repository.
+The full terms are in [`LICENSE`](LICENSE). This is a custom non-commercial license, so this project is **source-available**, not under a standard open-source license.
