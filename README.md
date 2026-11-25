@@ -15,7 +15,7 @@
 3. สำหรับ KBank QR/PromptPay บอทขอสร้างรายการและ QR จาก payment provider API ส่ง QR ให้ผู้ใช้ แล้วตรวจสถานะอีกครั้งเมื่อกด **ยืนยันการโอน**
 4. สำหรับ TrueMoney Wallet ผู้ใช้ส่งลิงก์ซอง บอทตรวจรูปแบบและป้องกันการใช้ reference ซ้ำ ก่อนตรวจรับซองผ่าน API
 5. เมื่อ API ยืนยันการชำระเงิน บอทเพิ่มแถวใน `topup_transactions` โดยกำหนด `processed = 0`
-6. ตัวประมวลผลฝั่ง SA-MP ที่เชื่อมกับฐานข้อมูลอ่านรายการค้าง เพิ่ม Cash ให้ผู้เล่น และอัปเดตสถานะเมื่อทำสำเร็จ
+6. สคริปต์ `discord_topup.pwn` ฝั่ง SA-MP อ่านรายการค้างจากฐานข้อมูล เพิ่ม Cash ให้ผู้เล่น และอัปเดตสถานะเมื่อทำสำเร็จ
 
 Repository นี้มี `discord_topup.pwn` สำหรับประมวลผลรายการเติมเงินฝั่ง SA-MP โดยอ่านธุรกรรม `processed = 0` ทุก 5 วินาที เติม Cash ให้ผู้เล่นออนไลน์หรือออฟไลน์ และอัปเดตสถานะรายการ โค้ดเป็นส่วนเสริมที่ต้องนำไปรวมกับ gamemode เดิม ซึ่งต้องมี `a_mysql`, `YSI_Coding\y_hooks`, การเชื่อมต่อ `g_SQL` และโครงสร้าง `playerData`/`pWallet` พร้อมฟังก์ชัน `UpdateplayerData` ให้ตรงกับเซิร์ฟเวอร์ก่อนใช้งาน
 
@@ -39,6 +39,15 @@ Repository นี้มี `discord_topup.pwn` สำหรับประมว
 - `!refpup <message_id|-> [description]` — รีเฟรชหรือแก้คำอธิบายโพสต์
 - `!topupoff [message_id]` — ปิดการเติมเงิน
 - `!topupon [message_id]` — เปิดการเติมเงิน
+
+### ภาพเมนู Discord และการตรวจสิทธิ์ผู้เล่น
+
+ภาพแรกเป็นโพสต์เมนูหลัก มีปุ่มเติมให้ตัวเอง เติมให้เพื่อน และเช็ค Cash ภาพที่สองเปรียบเทียบกรณีที่บัญชียังไม่ผูกกับตัวละครใน whitelist (ระบบแจ้งให้ลงทะเบียนก่อน) กับกรณีที่ผูกแล้ว ซึ่งผู้ใช้ไปต่อเพื่อเลือก TrueMoney Wallet หรือธนาคาร/PromptPay ได้
+
+| ตัวอย่าง | รายละเอียด |
+| --- | --- |
+| ![โพสต์ Discord พร้อมปุ่มเติมเงิน เติมให้เพื่อน และเช็ค Cash](docs/images/discord-topup-panel.png) | เมนูหลักที่ผู้ดูแลโพสต์ให้สมาชิกใช้งาน |
+| ![ตัวอย่างการแจ้งให้ลงทะเบียนและเมนูเลือกช่องทางหลังผูกบัญชีแล้ว](docs/images/whitelist-and-payment-options.png) | บัญชีที่ยังไม่ผูกตัวละครต้องลงทะเบียนก่อน ส่วนบัญชีที่ผ่าน whitelist จะเลือกช่องทางชำระเงินได้ |
 
 ข้อจำกัดในโค้ดปัจจุบัน: ขั้นต่ำ 10 บาท, สร้าง QR ได้ไม่เกิน 3 ครั้งต่อผู้ใช้ใน 5 นาที และปิดช่องทางธนาคาร/PromptPay เวลา 23:00–02:00 น. ตามเวลาไทย
 
@@ -85,7 +94,7 @@ A Python Discord bot for SA-MP Cash top-ups. It uses MySQL to pass payment recor
 3. For KBank QR/PromptPay, the bot requests a payment and QR from the provider, sends the QR to the user, then checks the payment after the user presses **Confirm Transfer**.
 4. For TrueMoney Wallet, the user submits a gift-envelope link. The bot validates the link and rejects a reference already used before checking the envelope through the API.
 5. After successful payment verification, the bot inserts a row in `topup_transactions` with `processed = 0`.
-6. The separate SA-MP server-side processor reads pending transactions, credits the player, and updates the status after completion.
+6. The included `discord_topup.pwn` server-side script reads pending transactions, credits the player, and updates the status after completion.
 
 This repository includes `discord_topup.pwn`, a SA-MP server-side transaction processor. It polls for `processed = 0` transactions every five seconds, credits Cash to online or offline players, and updates each transaction status. It is an integration module for an existing gamemode and requires `a_mysql`, `YSI_Coding\y_hooks`, a connected `g_SQL`, the server's `playerData`/`pWallet` structure, and a compatible `UpdateplayerData` function.
 
@@ -109,6 +118,15 @@ Owner-only commands use the `!` prefix and the IDs in `OWNERS`:
 - `!refpup <message_id|-> [description]` — refresh or edit the panel description
 - `!topupoff [message_id]` — disable top-ups
 - `!topupon [message_id]` — re-enable top-ups
+
+### Discord menu and player-link screenshots
+
+The first screenshot shows the main post with buttons to top up, top up a friend, or check Cash. The second compares an account that is not linked to a whitelisted character (the bot asks the user to register first) with a linked account that can proceed to choose TrueMoney Wallet or Bank/PromptPay.
+
+| Example | Description |
+| --- | --- |
+| ![Discord post with Top up, Top up a friend, and Check Cash buttons](docs/images/discord-topup-panel.png) | Main panel posted for server members |
+| ![Registration prompt and payment options after account linking](docs/images/whitelist-and-payment-options.png) | Unlinked accounts must register first; linked accounts can choose a payment method |
 
 Current limits: 10 THB minimum, up to three QR creation attempts per user in five minutes, and bank/PromptPay maintenance from 23:00 to 02:00 Thailand time.
 
