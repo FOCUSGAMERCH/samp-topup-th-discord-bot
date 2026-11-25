@@ -17,7 +17,7 @@
 5. เมื่อ API ยืนยันการชำระเงิน บอทเพิ่มแถวใน `topup_transactions` โดยกำหนด `processed = 0`
 6. ตัวประมวลผลฝั่ง SA-MP ที่เชื่อมกับฐานข้อมูลอ่านรายการค้าง เพิ่ม Cash ให้ผู้เล่น และอัปเดตสถานะเมื่อทำสำเร็จ
 
-บอทชุดนี้ไม่แก้ไฟล์ Pawn และไม่ได้รวมสคริปต์ฝั่ง SA-MP ไว้ใน repository นี้ การเพิ่ม Cash ในเกมต้องมี server-side processor ที่ทำงานกับตารางธุรกรรมเดียวกัน
+Repository นี้มี `discord_topup.pwn` สำหรับประมวลผลรายการเติมเงินฝั่ง SA-MP โดยอ่านธุรกรรม `processed = 0` ทุก 5 วินาที เติม Cash ให้ผู้เล่นออนไลน์หรือออฟไลน์ และอัปเดตสถานะรายการ โค้ดเป็นส่วนเสริมที่ต้องนำไปรวมกับ gamemode เดิม ซึ่งต้องมี `a_mysql`, `YSI_Coding\y_hooks`, การเชื่อมต่อ `g_SQL` และโครงสร้าง `playerData`/`pWallet` พร้อมฟังก์ชัน `UpdateplayerData` ให้ตรงกับเซิร์ฟเวอร์ก่อนใช้งาน
 
 ### ภาพตัวอย่างการทำงาน
 
@@ -86,7 +86,7 @@ A Python Discord bot for SA-MP Cash top-ups. It uses MySQL to pass payment recor
 5. After successful payment verification, the bot inserts a row in `topup_transactions` with `processed = 0`.
 6. The separate SA-MP server-side processor reads pending transactions, credits the player, and updates the status after completion.
 
-This repository does not include or modify the SA-MP Pawn script. In-game Cash delivery requires a server-side processor connected to the same transaction table.
+This repository includes `discord_topup.pwn`, a SA-MP server-side transaction processor. It polls for `processed = 0` transactions every five seconds, credits Cash to online or offline players, and updates each transaction status. It is an integration module for an existing gamemode and requires `a_mysql`, `YSI_Coding\y_hooks`, a connected `g_SQL`, the server's `playerData`/`pWallet` structure, and a compatible `UpdateplayerData` function.
 
 ### Workflow screenshots
 
