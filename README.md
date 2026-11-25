@@ -46,7 +46,7 @@ Repository นี้มี `discord_topup.pwn` สำหรับประมว
 
 | ตัวอย่าง | รายละเอียด |
 | --- | --- |
-| ![โพสต์ Discord พร้อมปุ่มเติมเงิน เติมให้เพื่อน และเช็ค Cash](docs/images/discord-topup-panel.png) | เมนูหลักที่ผู้ดูแลโพสต์ให้สมาชิกใช้งาน |
+| ![โพสต์ Discord พร้อมปุ่มเติมเงิน เติมให้เพื่อน และเช็ค Cash](docs/images/discord-main-menu.png) | เมนูหลักที่ผู้ดูแลโพสต์ให้สมาชิกใช้งาน |
 | ![ตัวอย่างการแจ้งให้ลงทะเบียนและเมนูเลือกช่องทางหลังผูกบัญชีแล้ว](docs/images/whitelist-and-payment-options.png) | บัญชีที่ยังไม่ผูกตัวละครต้องลงทะเบียนก่อน ส่วนบัญชีที่ผ่าน whitelist จะเลือกช่องทางชำระเงินได้ |
 
 ข้อจำกัดในโค้ดปัจจุบัน: ขั้นต่ำ 10 บาท, สร้าง QR ได้ไม่เกิน 3 ครั้งต่อผู้ใช้ใน 5 นาที และปิดช่องทางธนาคาร/PromptPay เวลา 23:00–02:00 น. ตามเวลาไทย
@@ -125,7 +125,7 @@ The first screenshot shows the main post with buttons to top up, top up a friend
 
 | Example | Description |
 | --- | --- |
-| ![Discord post with Top up, Top up a friend, and Check Cash buttons](docs/images/discord-topup-panel.png) | Main panel posted for server members |
+| ![Discord post with Top up, Top up a friend, and Check Cash buttons](docs/images/discord-main-menu.png) | Main panel posted for server members |
 | ![Registration prompt and payment options after account linking](docs/images/whitelist-and-payment-options.png) | Unlinked accounts must register first; linked accounts can choose a payment method |
 
 Current limits: 10 THB minimum, up to three QR creation attempts per user in five minutes, and bank/PromptPay maintenance from 23:00 to 02:00 Thailand time.
